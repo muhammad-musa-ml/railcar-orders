@@ -209,4 +209,9 @@ Build the design above. Departures found during implementation are recorded unde
 
 ## Amendments
 
-None yet.
+### 2026-10-21: details settled during implementation
+
+1. **A second kind of 409.** When the same request arrives several times at once, a losing transaction can be cancelled before the winning one has committed, so the idempotency record is not there yet when the loser looks for it. That request gets 409 with "in progress; retry", and a retry a moment later takes the replay path in step 3 of "Creating an order".
+2. **What the per-function `Errors` alarms see.** The API handlers catch unexpected errors, log them and return a JSON 500, so the invocation itself succeeds and the error shows in the API `5XXError` alarm. The worker reports a failed message to SQS in its batch response, which is also a successful invocation; those failures surface through the dead-letter alarm. The `Errors` alarms therefore fire on crashes, timeouts and running out of memory, which is narrower than the Observability section implies.
+3. **Custom metrics.** The worker writes CloudWatch embedded metric format lines with `OrdersAllocated`, `OrdersUnfilled` and `AllocationAttempts` in a `RailcarOrders` namespace. No alarm uses them. `AllocationAttempts` above one for an order means workers collided on cars.
+4. **Recovery notices.** Every alarm also notifies the topic when it returns to OK.
