@@ -14,18 +14,24 @@
     "test": "vitest run --project unit",
     "test:integration": "vitest run --project integration",
     "ddb:start": "docker run -d --rm --name railcar-orders-ddb -p 8000:8000 amazon/dynamodb-local:3.3.1 -jar DynamoDBLocal.jar -inMemory -sharedDb",
-    "ddb:stop": "docker stop railcar-orders-ddb"
+    "ddb:stop": "docker stop railcar-orders-ddb",
+    "synth": "cdk synth --quiet"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1154.0",
     "@aws-sdk/client-sqs": "^3.1154.0",
-    "@aws-sdk/lib-dynamodb": "^3.1154.0"
+    "@aws-sdk/lib-dynamodb": "^3.1154.0",
+    "aws-cdk-lib": "^2.274.0",
+    "constructs": "^10.8.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^22.20.5",
+    "aws-cdk": "^2.1146.0",
+    "esbuild": "^0.28.2",
     "eslint": "^10.13.0",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.0",
     "vitest": "^5.0.5"
