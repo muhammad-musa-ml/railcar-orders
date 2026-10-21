@@ -1,0 +1,83 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AssumeCdkBootstrapRoles",
+      "Effect": "Allow",
+      "Action": "sts:AssumeRole",
+      "Resource": [
+        "arn:aws:iam::<ACCOUNT_ID>:role/cdk-hnb659fds-deploy-role-<ACCOUNT_ID>-us-east-2",
+        "arn:aws:iam::<ACCOUNT_ID>:role/cdk-hnb659fds-file-publishing-role-<ACCOUNT_ID>-us-east-2",
+        "arn:aws:iam::<ACCOUNT_ID>:role/cdk-hnb659fds-lookup-role-<ACCOUNT_ID>-us-east-2"
+      ]
+    },
+    {
+      "Sid": "ReadStacks",
+      "Effect": "Allow",
+      "Action": "cloudformation:DescribeStacks",
+      "Resource": [
+        "arn:aws:cloudformation:us-east-2:<ACCOUNT_ID>:stack/RailcarOrders/*",
+        "arn:aws:cloudformation:us-east-2:<ACCOUNT_ID>:stack/CDKToolkit/*"
+      ]
+    },
+    {
+      "Sid": "ReadApiKeyAndApis",
+      "Effect": "Allow",
+      "Action": "apigateway:GET",
+      "Resource": [
+        "arn:aws:apigateway:us-east-2::/apikeys",
+        "arn:aws:apigateway:us-east-2::/apikeys/*",
+        "arn:aws:apigateway:us-east-2::/restapis"
+      ]
+    },
+    {
+      "Sid": "ColdStarts",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetFunction",
+        "lambda:GetFunctionConfiguration",
+        "lambda:UpdateFunctionConfiguration",
+        "lambda:InvokeFunction"
+      ],
+      "Resource": "arn:aws:lambda:us-east-2:<ACCOUNT_ID>:function:RailcarOrders-*"
+    },
+    {
+      "Sid": "SeedAndCheckTable",
+      "Effect": "Allow",
+      "Action": ["dynamodb:BatchWriteItem", "dynamodb:GetItem", "dynamodb:Scan"],
+      "Resource": "arn:aws:dynamodb:us-east-2:<ACCOUNT_ID>:table/RailcarOrders-*"
+    },
+    {
+      "Sid": "Queues",
+      "Effect": "Allow",
+      "Action": [
+        "sqs:GetQueueUrl",
+        "sqs:SendMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage"
+      ],
+      "Resource": "arn:aws:sqs:us-east-2:<ACCOUNT_ID>:RailcarOrders-*"
+    },
+    {
+      "Sid": "WorkerLogs",
+      "Effect": "Allow",
+      "Action": "logs:FilterLogEvents",
+      "Resource": "arn:aws:logs:us-east-2:<ACCOUNT_ID>:log-group:RailcarOrders-*"
+    },
+    {
+      "Sid": "ListCallsWithoutResourceScope",
+      "Effect": "Allow",
+      "Action": [
+        "lambda:GetAccountSettings",
+        "lambda:ListFunctions",
+        "cloudwatch:DescribeAlarms",
+        "dynamodb:ListTables",
+        "logs:DescribeLogGroups",
+        "sqs:ListQueues",
+        "sns:ListTopics"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

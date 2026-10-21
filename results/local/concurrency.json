@@ -1,0 +1,145 @@
+{
+  "kind": "local-concurrency-check",
+  "command": "npm run local:race",
+  "ranAt": "2026-10-21T18:29:10.858Z",
+  "environment": {
+    "dynamodb": "amazon/dynamodb-local:3.3.1 in Docker",
+    "node": "v22.17.0",
+    "cpu": "13th Gen Intel(R) Core(TM) i7-13700HX"
+  },
+  "options": {
+    "cars": 30,
+    "orders": 40,
+    "maxQuantity": 3,
+    "deliveriesPerOrder": 2
+  },
+  "summary": {
+    "runs": 5,
+    "concurrentAllocationCallsPerRun": 80,
+    "doubleAllocatedCars": 0,
+    "violations": 0,
+    "ordersStillPending": 0,
+    "carsAllocated": {
+      "runs": 5,
+      "median": 30,
+      "min": 30,
+      "max": 30
+    },
+    "failedCallsRetriedLater": {
+      "runs": 5,
+      "median": 0,
+      "min": 0,
+      "max": 0
+    },
+    "totalAttempts": {
+      "runs": 5,
+      "median": 186,
+      "min": 174,
+      "max": 194
+    },
+    "maxAttemptsForOneCall": {
+      "runs": 5,
+      "median": 4,
+      "min": 3,
+      "max": 4
+    },
+    "durationMs": {
+      "runs": 5,
+      "median": 688,
+      "min": 590,
+      "max": 819
+    }
+  },
+  "runs": [
+    {
+      "station": "RACE-AE63F758",
+      "carsSeeded": 30,
+      "orders": 40,
+      "carsRequested": 79,
+      "concurrentAllocationCalls": 80,
+      "ordersAllocated": 19,
+      "ordersUnfilled": 21,
+      "ordersStillPending": 0,
+      "carsAllocated": 30,
+      "failedCalls": 0,
+      "redeliveryRounds": 0,
+      "totalAttempts": 194,
+      "maxAttemptsForOneCall": 4,
+      "doubleAllocatedCars": 0,
+      "violations": [],
+      "durationMs": 739
+    },
+    {
+      "station": "RACE-85369F18",
+      "carsSeeded": 30,
+      "orders": 40,
+      "carsRequested": 79,
+      "concurrentAllocationCalls": 80,
+      "ordersAllocated": 19,
+      "ordersUnfilled": 21,
+      "ordersStillPending": 0,
+      "carsAllocated": 30,
+      "failedCalls": 0,
+      "redeliveryRounds": 0,
+      "totalAttempts": 192,
+      "maxAttemptsForOneCall": 4,
+      "doubleAllocatedCars": 0,
+      "violations": [],
+      "durationMs": 688
+    },
+    {
+      "station": "RACE-AA8B65C7",
+      "carsSeeded": 30,
+      "orders": 40,
+      "carsRequested": 79,
+      "concurrentAllocationCalls": 80,
+      "ordersAllocated": 20,
+      "ordersUnfilled": 20,
+      "ordersStillPending": 0,
+      "carsAllocated": 30,
+      "failedCalls": 0,
+      "redeliveryRounds": 0,
+      "totalAttempts": 178,
+      "maxAttemptsForOneCall": 4,
+      "doubleAllocatedCars": 0,
+      "violations": [],
+      "durationMs": 590
+    },
+    {
+      "station": "RACE-5F09C0A1",
+      "carsSeeded": 30,
+      "orders": 40,
+      "carsRequested": 79,
+      "concurrentAllocationCalls": 80,
+      "ordersAllocated": 19,
+      "ordersUnfilled": 21,
+      "ordersStillPending": 0,
+      "carsAllocated": 30,
+      "failedCalls": 0,
+      "redeliveryRounds": 0,
+      "totalAttempts": 186,
+      "maxAttemptsForOneCall": 4,
+      "doubleAllocatedCars": 0,
+      "violations": [],
+      "durationMs": 644
+    },
+    {
+      "station": "RACE-90F6BCF9",
+      "carsSeeded": 30,
+      "orders": 40,
+      "carsRequested": 79,
+      "concurrentAllocationCalls": 80,
+      "ordersAllocated": 20,
+      "ordersUnfilled": 20,
+      "ordersStillPending": 0,
+      "carsAllocated": 30,
+      "failedCalls": 0,
+      "redeliveryRounds": 0,
+      "totalAttempts": 174,
+      "maxAttemptsForOneCall": 3,
+      "doubleAllocatedCars": 0,
+      "violations": [],
+      "durationMs": 819
+    }
+  ]
+}

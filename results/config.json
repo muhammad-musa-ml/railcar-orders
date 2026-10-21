@@ -1,0 +1,164 @@
+{
+  "kind": "config-report",
+  "command": "npm run config:report",
+  "source": "synthesized CloudFormation template, plus constants in src/",
+  "api": {
+    "methodsRequiringApiKey": 3,
+    "methods": 3,
+    "usagePlan": {
+      "throttle": {
+        "BurstLimit": 50,
+        "RateLimit": 25
+      },
+      "quota": {
+        "Limit": 20000,
+        "Period": "DAY"
+      }
+    },
+    "stageThrottle": {
+      "rateLimit": 25,
+      "burstLimit": 50
+    }
+  },
+  "functions": {
+    "createorder": {
+      "runtime": "nodejs22.x",
+      "architecture": "arm64",
+      "memoryMb": 512,
+      "timeoutSeconds": 10,
+      "reservedConcurrency": 5
+    },
+    "getorder": {
+      "runtime": "nodejs22.x",
+      "architecture": "arm64",
+      "memoryMb": 512,
+      "timeoutSeconds": 10,
+      "reservedConcurrency": 5
+    },
+    "listorders": {
+      "runtime": "nodejs22.x",
+      "architecture": "arm64",
+      "memoryMb": 512,
+      "timeoutSeconds": 10,
+      "reservedConcurrency": 5
+    },
+    "allocatecars": {
+      "runtime": "nodejs22.x",
+      "architecture": "arm64",
+      "memoryMb": 512,
+      "timeoutSeconds": 10,
+      "reservedConcurrency": 2
+    }
+  },
+  "queue": {
+    "visibilityTimeoutSeconds": 60,
+    "maxReceiveCount": 3,
+    "dlqRetentionDays": 14
+  },
+  "worker": {
+    "batchSize": 5,
+    "maximumConcurrency": 2,
+    "functionResponseTypes": [
+      "ReportBatchItemFailures"
+    ],
+    "maxAttemptsPerMessage": 5,
+    "candidatesReadPerAttempt": 100
+  },
+  "logs": {
+    "retentionDays": [
+      7
+    ]
+  },
+  "alarms": [
+    {
+      "alarm": "DlqDepthAlarm",
+      "metric": "AWS/SQS/ApproximateNumberOfMessagesVisible",
+      "statistic": "Maximum",
+      "periodSeconds": 60,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "QueueAgeAlarm",
+      "metric": "AWS/SQS/ApproximateAgeOfOldestMessage",
+      "statistic": "Maximum",
+      "periodSeconds": 60,
+      "comparison": "GreaterThanThreshold",
+      "threshold": 300,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "createOrderErrorsAlarm",
+      "metric": "AWS/Lambda/Errors",
+      "statistic": "Sum",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "getOrderErrorsAlarm",
+      "metric": "AWS/Lambda/Errors",
+      "statistic": "Sum",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "listOrdersErrorsAlarm",
+      "metric": "AWS/Lambda/Errors",
+      "statistic": "Sum",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "allocateCarsErrorsAlarm",
+      "metric": "AWS/Lambda/Errors",
+      "statistic": "Sum",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "Api5xxAlarm",
+      "metric": "AWS/ApiGateway/5XXError",
+      "statistic": "Sum",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanOrEqualToThreshold",
+      "threshold": 1,
+      "treatMissingData": "notBreaching"
+    },
+    {
+      "alarm": "ApiLatencyP99Alarm",
+      "metric": "AWS/ApiGateway/Latency",
+      "statistic": "p99",
+      "periodSeconds": 300,
+      "comparison": "GreaterThanThreshold",
+      "threshold": 1000,
+      "treatMissingData": "notBreaching"
+    }
+  ],
+  "requests": {
+    "carTypes": [
+      "BOXCAR",
+      "COVERED_HOPPER",
+      "GONDOLA",
+      "TANK"
+    ],
+    "quantity": {
+      "min": 1,
+      "max": 20
+    },
+    "loadingDateMaxDaysAhead": 90,
+    "idempotencyRecordHours": 24,
+    "listPageSize": {
+      "default": 20,
+      "max": 100
+    }
+  }
+}
