@@ -15,7 +15,20 @@
     "test:integration": "vitest run --project integration",
     "ddb:start": "docker run -d --rm --name railcar-orders-ddb -p 8000:8000 amazon/dynamodb-local:3.3.1 -jar DynamoDBLocal.jar -inMemory -sharedDb",
     "ddb:stop": "docker stop railcar-orders-ddb",
-    "synth": "cdk synth --quiet"
+    "synth": "cdk synth --quiet",
+    "config:report": "tsx scripts/config-report.ts",
+    "local:race": "tsx scripts/local/race.ts",
+    "cdk:aws": "tsx scripts/live/cdk.ts",
+    "bootstrap": "tsx scripts/live/cdk.ts bootstrap",
+    "deploy": "tsx scripts/live/cdk.ts deploy --require-approval never",
+    "destroy": "tsx scripts/live/cdk.ts destroy --force",
+    "live:preflight": "tsx scripts/live/preflight.ts",
+    "live:load": "tsx scripts/live/load-test.ts",
+    "live:cold": "tsx scripts/live/cold-start.ts",
+    "live:race": "tsx scripts/live/concurrency-check.ts",
+    "live:poison": "tsx scripts/live/poison-check.ts",
+    "live:summary": "tsx scripts/live/summarize.ts",
+    "live:verify-teardown": "tsx scripts/live/verify-teardown.ts"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1154.0",
@@ -25,6 +38,12 @@
     "constructs": "^10.8.1"
   },
   "devDependencies": {
+    "@aws-sdk/client-api-gateway": "^3.1154.0",
+    "@aws-sdk/client-cloudformation": "^3.1154.0",
+    "@aws-sdk/client-cloudwatch": "^3.1154.0",
+    "@aws-sdk/client-cloudwatch-logs": "^3.1154.0",
+    "@aws-sdk/client-lambda": "^3.1154.0",
+    "@aws-sdk/client-sns": "^3.1154.0",
     "@eslint/js": "^10.0.1",
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^22.20.5",

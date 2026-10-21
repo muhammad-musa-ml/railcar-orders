@@ -135,7 +135,7 @@ export class RailcarOrdersStack extends Stack {
     orders.addResource("{orderId}").addMethod("GET", new apigw.LambdaIntegration(getOrder));
 
     // API Gateway picks the key value; it never appears in the template or the outputs.
-    const apiKey = api.addApiKey("ApiKey");
+    const apiKey = api.addApiKey("ApiKey", { apiKeyName: "railcar-orders" });
     const plan = api.addUsagePlan("UsagePlan", {
       throttle: { rateLimit: SETTINGS.apiRateLimitPerSecond, burstLimit: SETTINGS.apiBurstLimit },
       quota: { limit: SETTINGS.apiDailyQuota, period: apigw.Period.DAY },
@@ -162,6 +162,7 @@ export class RailcarOrdersStack extends Stack {
       GetOrderFunction: getOrder.functionName,
       ListOrdersFunction: listOrders.functionName,
       AllocateCarsFunction: allocateCars.functionName,
+      AllocateCarsLogGroup: allocateCars.logGroup.logGroupName,
       DlqAlarmName: alarms.dlqDepth.alarmName,
     };
     for (const [key, value] of Object.entries(outputs)) new CfnOutput(this, key, { value });
