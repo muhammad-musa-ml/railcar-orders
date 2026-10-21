@@ -1,0 +1,10 @@
+node_modules/
+cdk.out/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+# Deploy outputs hold queue URLs, which contain the account id.
+cdk-outputs.json
+# Raw measurement output before redaction; only results/ is committed.
+.live-tmp/
