@@ -91,7 +91,9 @@ export class RailcarOrdersStack extends Stack {
         reservedConcurrentExecutions: props.reservedConcurrency ? reserved : undefined,
         logGroup,
         environment: { TABLE_NAME: table.tableName, ...environment },
-        bundling: { minify: true, target: "node22" },
+        // Bundle the AWS SDK too (nothing external), so the deployed SDK is the version in
+        // package-lock.json that the tests ran against, not whatever the runtime ships.
+        bundling: { minify: true, target: "node22", externalModules: [] },
       });
     };
 
