@@ -1,9 +1,10 @@
-import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException, TransactionCanceledException } from "@aws-sdk/client-dynamodb";
 import {
   type DynamoDBDocumentClient,
   GetCommand,
   QueryCommand,
   TransactWriteCommand,
+  UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import type { Order } from "../domain/order";
 import { BY_SHIPPER_INDEX, idempotencyPk, orderPk, PARTITION_KEY, shipperPk } from "./table";
@@ -122,6 +123,26 @@ export class OrderStore {
       }),
     );
     return res.Item ? toOrder(res.Item) : undefined;
+  }
+
+  /** Sets a pending order to UNFILLED. Returns false if it was no longer pending. */
+  async markUnfilled(orderId: string, now: Date): Promise<boolean> {
+    try {
+      await this.doc.send(
+        new UpdateCommand({
+          TableName: this.tableName,
+          Key: { [PARTITION_KEY]: orderPk(orderId) },
+          UpdateExpression: "SET #status = :unfilled, updatedAt = :at",
+          ConditionExpression: "#status = :pending",
+          ExpressionAttributeNames: { "#status": "status" },
+          ExpressionAttributeValues: { ":unfilled": "UNFILLED", ":pending": "PENDING", ":at": now.toISOString() },
+        }),
+      );
+      return true;
+    } catch (err) {
+      if (err instanceof ConditionalCheckFailedException) return false;
+      throw err;
+    }
   }
 
   /** Newest first. `startKey` is the `lastKey` of the previous page. */
