@@ -1,6 +1,7 @@
 import { App } from "aws-cdk-lib";
 import { Match, Template } from "aws-cdk-lib/assertions";
 import { describe, expect, it } from "vitest";
+import { ALARMS } from "../../lib/alarms";
 import { RailcarOrdersStack, SETTINGS } from "../../lib/railcar-orders-stack";
 import { createTableInput } from "../../src/store/table";
 
@@ -162,6 +163,57 @@ describe("permissions", () => {
     expect(worker).not.toContain("dynamodb:PutItem");
     expect(worker).not.toContain("dynamodb:DeleteItem");
     expect(worker).not.toContain("sqs:SendMessage");
+  });
+});
+
+describe("alarms", () => {
+  type Alarm = { Properties: Record<string, unknown> };
+  const alarms = () => Object.values(template.findResources("AWS::CloudWatch::Alarm")) as Alarm[];
+  const byMetric = (name: string) => alarms().filter((a) => a.Properties.MetricName === name);
+
+  it("fires when one message reaches the dead-letter queue", () => {
+    const [dlq] = byMetric("ApproximateNumberOfMessagesVisible");
+    expect(dlq?.Properties).toMatchObject({
+      Namespace: "AWS/SQS",
+      Statistic: "Maximum",
+      Period: ALARMS.dlqPeriodSeconds,
+      Threshold: 1,
+      ComparisonOperator: "GreaterThanOrEqualToThreshold",
+      TreatMissingData: "notBreaching",
+    });
+  });
+
+  it("watches queue age, every function's errors, API 5xx and p99 latency", () => {
+    expect(byMetric("ApproximateAgeOfOldestMessage")[0]?.Properties.Threshold).toBe(ALARMS.oldestMessageSeconds);
+    expect(byMetric("Errors")).toHaveLength(4);
+    expect(byMetric("5XXError")).toHaveLength(1);
+    const [latency] = byMetric("Latency");
+    expect(latency?.Properties).toMatchObject({ ExtendedStatistic: "p99", Threshold: ALARMS.latencyP99Ms, Period: 300 });
+    expect(alarms()).toHaveLength(8);
+  });
+
+  it("sends every alarm and recovery to one topic, with no email unless asked", () => {
+    for (const a of alarms()) {
+      expect(a.Properties.AlarmActions).toHaveLength(1);
+      expect(a.Properties.OKActions).toHaveLength(1);
+    }
+    template.resourceCountIs("AWS::SNS::Topic", 1);
+    template.resourceCountIs("AWS::SNS::Subscription", 0);
+  });
+
+  it("subscribes an email address when one is given", () => {
+    // SNS checks the address when the subscription is confirmed, not at synth time.
+    const address = "address-from-context";
+    const app = new App({ context: { "aws:cdk:bundling-stacks": [] } });
+    const stack = new RailcarOrdersStack(app, "WithEmail", {
+      reservedConcurrency: true,
+      alarmEmail: address,
+      env: { region: "us-east-2" },
+    });
+    Template.fromStack(stack).hasResourceProperties("AWS::SNS::Subscription", {
+      Protocol: "email",
+      Endpoint: address,
+    });
   });
 });
 

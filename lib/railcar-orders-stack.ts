@@ -14,6 +14,7 @@ import {
   PARTITION_KEY,
   TTL_ATTRIBUTE,
 } from "../src/store/table";
+import { addAlarms } from "./alarms";
 
 /** Every limit the stack sets, in one place. RFC 0001, "Cost guards" and "Queue and failure handling". */
 export const SETTINGS = {
@@ -36,6 +37,8 @@ export const SETTINGS = {
 export interface RailcarOrdersStackProps extends StackProps {
   /** Off for accounts whose concurrency quota leaves nothing to reserve. */
   reservedConcurrency: boolean;
+  /** Optional address for alarm emails. Nothing is subscribed without it. */
+  alarmEmail?: string;
 }
 
 const handlerPath = (name: string) => fileURLToPath(new URL(`../src/handlers/${name}.ts`, import.meta.url));
@@ -140,6 +143,14 @@ export class RailcarOrdersStack extends Stack {
     plan.addApiKey(apiKey);
     plan.addApiStage({ stage: api.deploymentStage });
 
+    const alarms = addAlarms(this, {
+      api,
+      queue,
+      dlq,
+      functions: { createOrder, getOrder, listOrders, allocateCars },
+      alarmEmail: props.alarmEmail,
+    });
+
     // Names and ids only. Queue URLs and ARNs carry the account id, so they are not outputs.
     const outputs: Record<string, string> = {
       ApiUrl: api.url,
@@ -151,6 +162,7 @@ export class RailcarOrdersStack extends Stack {
       GetOrderFunction: getOrder.functionName,
       ListOrdersFunction: listOrders.functionName,
       AllocateCarsFunction: allocateCars.functionName,
+      DlqAlarmName: alarms.dlqDepth.alarmName,
     };
     for (const [key, value] of Object.entries(outputs)) new CfnOutput(this, key, { value });
   }

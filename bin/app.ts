@@ -13,5 +13,7 @@ new RailcarOrdersStack(app, "RailcarOrders", {
     region: process.env.CDK_DEFAULT_REGION ?? "us-east-2",
   },
   reservedConcurrency: !(reserved === false || reserved === "false"),
+  // `-c alarmEmail=<address>` subscribes an email address to the alarm topic.
+  alarmEmail: app.node.tryGetContext("alarmEmail"),
   tags: { project: "railcar-orders" },
 });
