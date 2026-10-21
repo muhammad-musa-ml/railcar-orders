@@ -11,7 +11,10 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --project unit"
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration",
+    "ddb:start": "docker run -d --rm --name railcar-orders-ddb -p 8000:8000 amazon/dynamodb-local:3.3.1 -jar DynamoDBLocal.jar -inMemory -sharedDb",
+    "ddb:stop": "docker stop railcar-orders-ddb"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1154.0",

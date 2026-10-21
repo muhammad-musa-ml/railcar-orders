@@ -12,3 +12,11 @@ npm run lint
 npm run typecheck
 npm test
 ```
+
+Integration tests run the handlers against DynamoDB Local in Docker:
+
+```sh
+npm run ddb:start
+npm run test:integration
+npm run ddb:stop
+```
