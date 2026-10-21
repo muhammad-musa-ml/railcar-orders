@@ -49,15 +49,24 @@ do {
 } while (topicToken);
 
 const apigw = new APIGatewayClient({ region: REGION });
+const logsClient = new CloudWatchLogsClient({ region: REGION });
 const left = {
   stack: await stackStatus(STACK_NAME),
   tables: ((await new DynamoDBClient({ region: REGION }).send(new ListTablesCommand({}))).TableNames ?? []).filter((t) =>
     t.startsWith(prefix),
   ),
   functions: functions.filter((f) => f.startsWith(prefix)),
-  logGroups:
-    (await new CloudWatchLogsClient({ region: REGION }).send(new DescribeLogGroupsCommand({ logGroupNamePrefix: prefix })))
-      .logGroups?.map((g) => g.logGroupName ?? "") ?? [],
+  // The functions log to groups the stack owns; the /aws/lambda/ prefix would catch a
+  // default group Lambda created on its own.
+  logGroups: (
+    await Promise.all(
+      [prefix, `/aws/lambda/${prefix}`].map(async (p) =>
+        ((await logsClient.send(new DescribeLogGroupsCommand({ logGroupNamePrefix: p }))).logGroups ?? []).map(
+          (g) => g.logGroupName ?? "",
+        ),
+      ),
+    )
+  ).flat(),
   alarms:
     (await new CloudWatchClient({ region: REGION }).send(new DescribeAlarmsCommand({ AlarmNamePrefix: prefix }))).MetricAlarms?.map(
       (a) => a.AlarmName ?? "",

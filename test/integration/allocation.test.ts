@@ -121,7 +121,7 @@ describe("processBatch", () => {
 
 describe("concurrent allocation", () => {
   it("never gives a car to two orders when every order races for too few cars", async () => {
-    // 40 orders asking for 1-3 cars each (80 in total) against 30 cars, every order
+    // 40 orders asking for 1-3 cars each (79 in total) against 30 cars, every order
     // handed to two workers at once: 80 concurrent allocation calls.
     const result = await runAllocationRace(
       table.doc,
@@ -131,6 +131,7 @@ describe("concurrent allocation", () => {
     );
 
     expect(result.concurrentAllocationCalls).toBe(80);
+    expect(result.carsRequested).toBe(79);
     expect(result.violations).toEqual([]);
     expect(result.doubleAllocatedCars).toBe(0);
     expect(result.ordersStillPending).toBe(0);
