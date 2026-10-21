@@ -72,7 +72,7 @@ npm run test:integration
 npm run ddb:stop
 ```
 
-CI (`.github/workflows/ci.yml`) runs lint, typecheck, the unit tests and `cdk synth` on every push, without AWS credentials.
+CI (`.github/workflows/ci.yml`) runs lint, typecheck, the unit tests and `cdk synth` on pushes to `main` and on pull requests, without AWS credentials. The integration tests need Docker and run locally.
 
 ## Results
 
@@ -88,7 +88,7 @@ From [`results/local/concurrency.json`](results/local/concurrency.json), produce
 | cars allocated, of 30 | 30 in every run |
 | allocation attempts for the 80 calls | median 186, range 174 to 194 |
 | most attempts made by one call | median 4, range 3 to 4 |
-| wall time per run | median 688 ms, range 590 to 819 ms |
+| time for the allocation phase of a run | median 688 ms, range 590 to 819 ms |
 
 An attempt is one index read plus one transaction, so more attempts than calls means workers did collide on cars and had to retry. None of those collisions gave a car to two orders. The integration test `test/integration/allocation.test.ts` runs the same race; with the `status = AVAILABLE` condition taken out of the transaction, that test fails.
 
