@@ -108,31 +108,48 @@ const violations = checkAllocations(orders, cars);
 const holders = new Map<string, number>();
 for (const o of orders) for (const c of o.carIds) holders.set(c, (holders.get(c) ?? 0) + 1);
 
-// How often the worker had to retry because another invocation took a car first.
+// How often the worker had to retry because another invocation took a car first, read
+// from its JSON logs. Log delivery lags, so read until two reads 10 s apart agree.
 const logs = new CloudWatchLogsClient({ region: REGION });
 const ours = new Set(orderIds);
-let attemptsLogged = 0;
-let allocationsWithRetries = 0;
-let alreadyProcessed = 0;
-let nextToken: string | undefined;
-do {
-  const page = await logs.send(
-    new FilterLogEventsCommand({
-      logGroupName: outputs.AllocateCarsLogGroup,
-      startTime: new Date(startedAt).getTime() - 60_000,
-      filterPattern: '{ $.msg = "allocation.*" }',
-      nextToken,
-    }),
-  );
-  for (const e of page.events ?? []) {
-    const rec = JSON.parse(e.message ?? "{}") as { orderId?: string; msg?: string; attempts?: number };
-    if (!rec.orderId || !ours.has(rec.orderId)) continue;
-    attemptsLogged++;
-    if (rec.msg === "allocation.already-processed") alreadyProcessed++;
-    if ((rec.attempts ?? 0) > 1) allocationsWithRetries++;
+async function countWorkerLog() {
+  const counts = { outcomeLines: 0, duplicateDeliveriesSkipped: 0, ordersNeedingRetries: 0 };
+  let nextToken: string | undefined;
+  do {
+    const page = await logs.send(
+      new FilterLogEventsCommand({
+        logGroupName: outputs.AllocateCarsLogGroup,
+        startTime: new Date(startedAt).getTime() - 60_000,
+        filterPattern: '{ $.msg = "allocation.*" }',
+        nextToken,
+      }),
+    );
+    for (const e of page.events ?? []) {
+      const rec = JSON.parse(e.message ?? "{}") as { orderId?: string; msg?: string; attempts?: number };
+      if (!rec.orderId || !ours.has(rec.orderId)) continue;
+      counts.outcomeLines++;
+      if (rec.msg === "allocation.already-processed") counts.duplicateDeliveriesSkipped++;
+      if ((rec.attempts ?? 0) > 1) counts.ordersNeedingRetries++;
+    }
+    nextToken = page.nextToken;
+  } while (nextToken);
+  return counts;
+}
+let workerLog: Record<string, number | string>;
+try {
+  let previous = await countWorkerLog();
+  for (let i = 0; i < 6; i++) {
+    await sleep(10_000);
+    const current = await countWorkerLog();
+    const stable = current.outcomeLines === previous.outcomeLines;
+    previous = current;
+    if (stable) break;
   }
-  nextToken = page.nextToken;
-} while (nextToken);
+  workerLog = previous;
+} catch (err) {
+  // Keep the allocation result even if the log read fails.
+  workerLog = { error: err instanceof Error ? err.message : String(err) };
+}
 
 const result = {
   kind: "live-concurrency-check",
@@ -152,7 +169,7 @@ const result = {
   carsAllocated: cars.filter((c) => c.status === "ALLOCATED").length,
   doubleAllocatedCars: [...holders.values()].filter((n) => n > 1).length,
   violations,
-  workerLog: { outcomeLines: attemptsLogged, duplicateDeliveriesSkipped: alreadyProcessed, ordersNeedingRetries: allocationsWithRetries },
+  workerLog,
 };
 const path = writeResult(`live/concurrency/run-${stamp()}.json`, result);
 console.log(JSON.stringify(result, null, 2));
