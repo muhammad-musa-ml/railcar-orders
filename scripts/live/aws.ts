@@ -1,14 +1,24 @@
 import { APIGatewayClient, GetApiKeyCommand } from "@aws-sdk/client-api-gateway";
 import { CloudFormationClient, DescribeStacksCommand } from "@aws-sdk/client-cloudformation";
+import { redact } from "../lib/results";
 
 export const STACK_NAME = "RailcarOrders";
 export const REGION = process.env.AWS_REGION ?? "us-east-2";
 
 /**
  * Every live script runs against a named profile and refuses to fall back to whatever
- * default credentials happen to be on the machine.
+ * default credentials happen to be on the machine. It also routes uncaught errors through
+ * `redact`: AWS error messages often quote the caller's ARN, which holds the account id.
  */
 export function requireProfile(): string {
+  const fail = (err: unknown) => {
+    const text = err instanceof Error ? (err.stack ?? `${err.name}: ${err.message}`) : String(err);
+    process.stderr.write(`${redact(text)}\n`);
+    process.exit(1);
+  };
+  process.on("uncaughtException", fail);
+  process.on("unhandledRejection", fail);
+
   const profile = process.env.AWS_PROFILE;
   if (!profile) {
     console.error("Set AWS_PROFILE to the profile to use, e.g. AWS_PROFILE=portfolio AWS_REGION=us-east-2");
