@@ -1,6 +1,6 @@
 # railcar-orders
 
-A small serverless system on AWS for one railroad task: a shipper orders empty railcars for a loading date, and a worker assigns specific cars from the empties standing at the shipper's station. It runs on API Gateway, Lambda (Node.js 22, TypeScript), DynamoDB and SQS, and is deployed with the AWS CDK.
+A small serverless system for one railroad task: a shipper orders empty railcars for a loading date, and a worker assigns specific cars from the empties standing at the shipper's station. It is built for API Gateway, Lambda (Node.js 22, TypeScript), DynamoDB and SQS on AWS, with the stack defined in the AWS CDK.
 
 All data in this repository is synthetic. Stations, shippers and car numbers are made up, and the reporting marks used for cars (`XMBX`, `XMCH`, `XMGN`, `XMTK`) do not belong to any railroad.
 
